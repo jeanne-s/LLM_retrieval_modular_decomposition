@@ -1,0 +1,10 @@
+{
+    "request_0":{
+        "context":"Answer the question below.\n\nQuestion: Where is the story?\nAnswer: In the city of",
+        "type":"location"
+    },
+    "request_1":{
+        "context":"Answer the question below.\n\nQuestion: Who is in the story?\nAnswer: The character is",
+        "type":"character"
+    }
+}

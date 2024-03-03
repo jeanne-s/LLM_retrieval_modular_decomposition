@@ -1,0 +1,27 @@
+{
+    "story_0":{
+        "context":"Here is a short story. Read it carefully and answer the questions below with a keyword from the text.\n\nAlice was a young woman with a keen sense of adventure, living in the heart of London. Her life was a blend of the modern hustle and the city's age-old mysteries, nestled within the winding streets and historic buildings of her neighborhood. Alice worked at a small, independent bookstore nestled between towering skyscrapers and ancient pubs, a place that seemed to resist the passage of time. It was her sanctuary, filled with the scent of old books and the quiet whispers of stories waiting to be discovered. Despite her love for the quiet life, Alice couldn't shake off the feeling that there was something more, a deeper mystery that lay hidden beneath the surface of her daily existence. It was a feeling that would soon lead her on an unexpected journey.",
+        "character":"Alice",
+        "location":"London"
+    },
+    "story_1":{
+        "context":"Here is a short story. Read it carefully and answer the questions below with a keyword from the text.\n\nBob is an artist through and through, whose spirit and creativity are as vibrant and lively as the city of Paris itself. He resides in a charming, light-filled studio apartment in Paris, surrounded by the echoes of the great artists who once roamed its cobblestone streets. Bob's days are spent wandering the city with his sketchbook in hand, capturing the essence of Parisian life—the bustling cafés, the serene parks, the historic bridges over the Seine—with quick, deft strokes of his pencil. By night, his small studio transforms into a hive of artistic activity. Canvases of all sizes lean against the aged plaster walls, each one a testament to Bob's love for the city and its endless inspiration.",
+        "character":"Bob",
+        "location":"Paris"
+    },
+    "story_2":{
+        "context":"Here is a short story. Read it carefully and answer the questions below with a keyword from the text.\n\nClara was a quiet, contemplative soul who lived in the bustling city of Edinburgh. Her days were spent in the confines of a cozy, dimly lit antique shop tucked away on a cobbled street, overshadowed by the grandeur of the city's historic castle. To the regulars, she was known simply as 'Cee', a keeper of relics and stories from times long past. Clara had always felt a deep connection to history, a pull towards the secrets and tales that antiques carried within them. One rainy afternoon, as she was rearranging a set of ancient, leather-bound books, she stumbled upon a hidden compartment behind a loose panel in the wall. Inside, she found an old, dust-covered map of the city with a mysterious garden marked in a place she couldn't recognize. Intrigued and driven by her adventurous spirit, Clara decided to seek out this hidden garden, unaware of the magical journey that awaited her.",
+        "character":"Clara",
+        "location":"Edinburgh"
+    },
+    "story_3":{
+        "context":"Here is a short story. Read it carefully and answer the questions below with a keyword from the text.\n\nDaniel was an engineer with a passion for the locomotives of yore, resi  ding in the sprawling metropolis of Chicago. His fascination wasn't with the sleek, modern trains that whisked people across the city with efficiency but with the old, steam-powered giants that harked back to a bygone era. His sanctuary was the city's railway museum, a place where he was affectionately known as 'Dan the Train Man'. It was here among the relics of the railroads' golden age that Daniel felt most alive, his imagination fueled by the stories of adventures and explorers that the trains had once carried. One evening, as he was locking up, a mysterious, whistle in the distance caught his attention. Following the sound, he found himself at an abandoned platform, just as a majestic, steam-powered train pulled in, its engine alive with fire and steam. It was an invitation to an adventure that Daniel had always dreamed of, a journey through time on the midnight train.",
+        "character":"Daniel",
+        "location":"Chicago"
+    },
+    "story_4":{
+        "context":"Here is a short story. Read it carefully and answer the questions below with a keyword from the text.\n\nHaru was a young, aspiring writer living in the heart of Tokyo, a city where tradition and modernity danced in a delicate balance. By day, he navigated the sprawling metropolis, its towering skyscrapers casting long shadows over the ancient temples and gardens that had survived the passage of time. By night, he poured his soul into crafting stories that captured the essence of this city, its vibrant lifeblood, and the quiet moments of beauty found in the most unexpected places. Haru's tiny apartment was perched on the edge of the Sumida River, offering a view that overlooked the bustling city and the serene waters that cut through it. From his window, he could see the Tokyo Skytree standing tall, a beacon of the city's unyielding reach towards the future. Yet, it was the sakura trees lining the riverbanks that captured his heart each spring, their delicate pink blossoms whispering tales of ephemeral beauty and the cycle of life.",
+        "character":"Haru",
+        "location":"Tokyo"
+    }
+}
