@@ -57,13 +57,13 @@ def apply_activation_patch(model,
                            tokenizer, 
                            target_prompt,
                            source_activations, #: Float[torch.Tensor, 'batch seq n_layers d_model'], 
-                           target_layer_idx: int = 2, 
+                           target_layer_idx: int, 
                            target_token_idx: int = -1, 
 ):
 
     def patch_activations(source_activations, 
-                        target_layer_idx, 
-                        target_token_idx):
+                          target_layer_idx, 
+                          target_token_idx):
         def hook(module, input, output):
             output[0][:, target_token_idx, :] = source_activations[:, target_token_idx, target_layer_idx, :]
         return hook
@@ -78,11 +78,12 @@ def apply_activation_patch(model,
     
     try:
         with torch.no_grad():
+            original_length = input_ids['input_ids'].shape[1]
             tokens = model.generate(**input_ids)
     finally:
         hook_handle.remove()
     
-    return tokens
+    return tokens, original_length
 
 
 
@@ -100,13 +101,13 @@ def request_patching(model_name: str,
 
 
     for layer in range(layers):
-        tokens = apply_activation_patch(model=model,
+        tokens, original_length = apply_activation_patch(model=model,
                                         tokenizer=tokenizer,
                                         target_prompt=target_prompt,
                                         target_layer_idx=target_layer_idx,
                                         source_activations=activations)
 
         str_tokens = tokenizer.batch_decode(tokens)
-        last_str_token = str_tokens[-1].split()[-1] #corriger pour batch
+        last_str_token = str_tokens[-1].split()[original_length] #corriger pour batch
         print(f'Layer {layer} - {last_str_token}')
     return

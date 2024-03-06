@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from request_patching import request_patch_all_prompt_pairs
 
-def plot_request_patching_normalized_accuracy(model_name: str,
+def plot_request_patching_accuracy(model_name: str,
                                               savefig: str = False
 ):
     """ Plots the normalized accuracy from the request_patching experiment.
