@@ -79,7 +79,7 @@ def apply_activation_patch(model,
     try:
         with torch.no_grad():
             original_length = input_ids['input_ids'].shape[1]
-            tokens = model.generate(**input_ids)
+            tokens = model.generate(**input_ids, pad_token_id=tokenizer.eos_token_id)
     finally:
         hook_handle.remove()
     
@@ -87,6 +87,7 @@ def apply_activation_patch(model,
 
 
 
+"""
 def request_patching(model_name: str,
                      source_prompt: str,
                      target_prompt: str,
@@ -102,12 +103,13 @@ def request_patching(model_name: str,
 
     for layer in range(layers):
         tokens, original_length = apply_activation_patch(model=model,
-                                        tokenizer=tokenizer,
-                                        target_prompt=target_prompt,
-                                        target_layer_idx=target_layer_idx,
-                                        source_activations=activations)
+                                                         tokenizer=tokenizer,
+                                                         target_prompt=target_prompt,
+                                                         target_layer_idx=target_layer_idx,
+                                                         source_activations=activations)
 
         str_tokens = tokenizer.batch_decode(tokens)
         last_str_token = str_tokens[-1].split()[original_length] #corriger pour batch
         print(f'Layer {layer} - {last_str_token}')
     return
+"""

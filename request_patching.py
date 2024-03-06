@@ -81,8 +81,13 @@ def request_patch_all_prompt_pairs(model_name: str,
 
     if dataset == 'short_stories':
         all_prompt_pairs, R2_C2, R1_C2, R1_C1 = create_all_prompt_pairs_short_stories()
+        R2_C2 = get_first_token_from_str_list(R2_C2, tokenizer)
+        R1_C2 = get_first_token_from_str_list(R1_C2, tokenizer)
+        R1_C1 = get_first_token_from_str_list(R1_C1, tokenizer)
     elif dataset == 'dialogs':
         all_prompt_pairs, R_C1, R_C2 = create_all_prompt_pairs_dialogs()
+        R_C1 = get_first_token_from_str_list(R_C1, tokenizer)
+        R_C2 = get_first_token_from_str_list(R_C2, tokenizer)
 
     for context_1, context_2 in all_prompt_pairs:
 
@@ -93,7 +98,6 @@ def request_patch_all_prompt_pairs(model_name: str,
                                                  details=details)
         
         tokens_per_prompt_pair.append(token_per_layer)
-
     
     if dataset == 'short_stories':
         return tokens_per_prompt_pair, R2_C2, R1_C2, R1_C1
@@ -122,18 +126,60 @@ def request_patch_one_pair(context_1: str,
     token_per_layer = []
     layers = len(get_layers_to_enumerate(model))
     for layer in range(layers):
-        tokens = apply_activation_patch(model=model,
-                                        tokenizer=tokenizer,
-                                        target_prompt=context_2,
-                                        target_layer_idx=layer,
-                                        source_activations=activations)
+        tokens, original_length = apply_activation_patch(model=model,
+                                                         tokenizer=tokenizer,
+                                                         target_prompt=context_2,
+                                                         target_layer_idx=layer,
+                                                         source_activations=activations)
 
-        last_token = tokens[0, -1] # batch 0, last token
+        last_token = tokens[0, original_length] # batch 0, last token
         last_str_token = tokenizer.decode(last_token)
         #last_str_token = str_tokens[-1].split()[-1] previous line with str_tokens = tokenizer.batch_decode(tokens)
-        print('last_str_token', last_str_token)
         token_per_layer.append(last_str_token)
 
     if details:
         print(token_per_layer)
     return token_per_layer
+
+
+def get_first_token_from_str(string: str,
+                             tokenizer
+) -> str:
+    """ Returns the first token from a given word on the prompt: 'The answer is {string}'.
+    This function is useful to get the accuracy plots (plots/plot_request_patching_accuracy)
+
+    Examples:
+        - if tokenization('The answer is Daniel') = 'The', 'answer', 'is', ' Dan', 'iel'
+          get_first_token_from_str('Daniel') = ' Dan' (notice the space)
+        - if tokenization('The answer is Daniel') = 'The', 'answer', 'is', 'Daniel'
+          get_first_token_from_str('Daniel') = 'Daniel'
+    """
+    tokenized_ids = tokenizer.encode(f'The answer is {string}')
+    for token_id in reversed(tokenized_ids):
+        str_token = tokenizer.decode(token_id)
+        if string[0] in str_token:
+            return str_token 
+
+
+def get_first_token_from_str_list(string_list,
+                                  tokenizer
+):
+    """ Applies get_first_token_from_str successively to all elements of the
+    input string_list.
+    """
+    first_tokens_list = []
+    for string in string_list:
+        first_tokens_list.append(get_first_token_from_str(string, tokenizer))
+
+    return first_tokens_list
+
+
+def baseline_completion(context: str,
+                        model,
+                        tokenizer
+) -> str:
+    """ Returns the token predicted by the given model on the given prompt.
+    """
+    input_ids = tokenizer(context, return_tensors="pt", truncation=True)
+    tokens = model.generate(**input_ids, pad_token_id=tokenizer.eos_token_id)
+    return tokenizer.batch_decode(tokens)
