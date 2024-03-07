@@ -178,8 +178,8 @@ def baseline_completion(context: str,
                         model,
                         tokenizer
 ) -> str:
-    """ Returns the token predicted by the given model on the given prompt.
+    """ Returns the str token predicted by the given model on the given prompt.
     """
     input_ids = tokenizer(context, return_tensors="pt", truncation=True)
     tokens = model.generate(**input_ids, pad_token_id=tokenizer.eos_token_id)
-    return tokenizer.batch_decode(tokens)
+    return tokenizer.decode(tokens[0, -1])
