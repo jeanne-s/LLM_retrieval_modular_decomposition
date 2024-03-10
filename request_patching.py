@@ -1,11 +1,36 @@
 import json
+import pickle
 
 from models import get_model_from_name
 from activations import get_residual_stream_activations, apply_activation_patch, get_layers_to_enumerate
 
 
-def create_all_prompt_pairs_short_stories(stories_filepath: str = 'data/short_stories.json',
-                                          requests_filepath: str = 'data/requests.json'
+
+def create_patch_request_dict(model_name: str,
+                              dataset: str = 'short_stories',
+                              details=False):
+
+    assert dataset in ['short_stories', 'dialogs']
+    model, tokenizer = get_model_from_name(model_name)
+
+    if dataset == 'short_stories':
+        _,_,_,_,dict = create_all_prompt_pairs_short_stories(tokenizer)
+    
+    for pair in dict:
+        dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
+                                                               context_2=dict[pair]['context_2'],
+                                                               model=model,
+                                                               tokenizer=tokenizer,
+                                                               details=details)
+
+    with open(f'dash_app/patch_request_dictionaries/{model_name}.pkl', 'wb') as f:
+        pickle.dump(dict, f)
+    return dict
+
+
+def create_all_prompt_pairs_short_stories(tokenizer,
+                                          stories_filepath: str = 'data/short_stories.json',
+                                          requests_filepath: str = 'data/requests.json',
 ):
     """ Creates a list of prompt pairs (context_1, context_2) for request patching experiments.
 
@@ -27,7 +52,9 @@ def create_all_prompt_pairs_short_stories(stories_filepath: str = 'data/short_st
     R2_C2 = []
     R1_C2 = []
     R1_C1 = []
+    prompt_pairs_dict = {}
 
+    pair_id = 0
     for i in range(0, len(stories)):
         for j in range(i+1, len(stories)):
             context_1 = stories[f'story_{i}']['context'] + '\n\n' + requests['request_0']['context']
@@ -38,7 +65,20 @@ def create_all_prompt_pairs_short_stories(stories_filepath: str = 'data/short_st
             R1_C2.append(stories[f'story_{j}'][f'{R1}'])
             R1_C1.append(stories[f'story_{i}'][f'{R1}'])
 
-    return all_prompt_pairs, R2_C2, R1_C2, R1_C1
+            # Dict
+            prompt_pairs_dict[f'pair_{pair_id}'] = {}
+            prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
+            prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
+            prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = get_first_token_from_str(stories[f'story_{i}'][f'{R1}'],
+                                                                                     tokenizer)
+            prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = get_first_token_from_str(stories[f'story_{j}'][f'{R1}'],
+                                                                                     tokenizer)
+            prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = get_first_token_from_str(stories[f'story_{j}'][f'{R2}'],
+                                                                                     tokenizer)
+
+            pair_id += 1
+
+    return all_prompt_pairs, R2_C2, R1_C2, R1_C1, prompt_pairs_dict
 
 
 def create_all_prompt_pairs_dialogs(dialog_filepath: str = 'data/dialogs.json'):
@@ -62,6 +102,10 @@ def create_all_prompt_pairs_dialogs(dialog_filepath: str = 'data/dialogs.json'):
     return all_prompt_pairs, R_C1, R_C2
 
 
+
+
+
+
 def request_patch_all_prompt_pairs(model_name: str,
                                    dataset: str = 'short_stories',
                                    details=False
@@ -80,7 +124,7 @@ def request_patch_all_prompt_pairs(model_name: str,
     tokens_per_prompt_pair = []
 
     if dataset == 'short_stories':
-        all_prompt_pairs, R2_C2, R1_C2, R1_C1 = create_all_prompt_pairs_short_stories()
+        all_prompt_pairs, R2_C2, R1_C2, R1_C1, prompt_pairs_dict = create_all_prompt_pairs_short_stories(tokenizer)
         R2_C2 = get_first_token_from_str_list(R2_C2, tokenizer)
         R1_C2 = get_first_token_from_str_list(R1_C2, tokenizer)
         R1_C1 = get_first_token_from_str_list(R1_C1, tokenizer)
