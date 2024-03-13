@@ -16,7 +16,7 @@ def create_patch_request_dict(model_name: str,
     if dataset == 'short_stories':
         _,_,_,_,dict = create_all_prompt_pairs_short_stories(tokenizer)
     elif dataset == 'dialogs':
-        _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer)
+        _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer, model)
     
     for pair in dict:
         dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
@@ -84,6 +84,7 @@ def create_all_prompt_pairs_short_stories(tokenizer,
 
 
 def create_all_prompt_pairs_dialogs(tokenizer,
+                                    model,
                                     dialog_filepath: str = 'data/dialogs.json'):
 
     # TODO: faire tourner la pipeline dans les deux sens !
@@ -108,10 +109,14 @@ def create_all_prompt_pairs_dialogs(tokenizer,
             prompt_pairs_dict[f'pair_{pair_id}'] = {}
             prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
             prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
-            prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['emotion'],
-                                                                                     tokenizer)
-            prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['emotion'],
-                                                                                     tokenizer)
+
+            # TODO: à corriger, c'est faux! base_completion->get first token
+            prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = baseline_completion(context=context_1,
+                                                                               model=model,
+                                                                               tokenizer=tokenizer)
+            prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = baseline_completion(context=context_2,
+                                                                               model=model,
+                                                                               tokenizer=tokenizer)
             pair_id += 1
 
     return all_prompt_pairs, R_C1, R_C2, prompt_pairs_dict
