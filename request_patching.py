@@ -24,6 +24,12 @@ def create_patch_request_dict(model_name: str,
                                                                model=model,
                                                                tokenizer=tokenizer,
                                                                details=details)
+        dict[pair]['baseline_completion_extended_1'] = baseline_completion_plus(context=dict[pair]['context_1'],
+                                                                                model=model,
+                                                                                tokenizer=tokenizer)
+        dict[pair]['baseline_completion_extended_2'] = baseline_completion_plus(context=dict[pair]['context_2'],
+                                                                                model=model,
+                                                                                tokenizer=tokenizer)
 
     with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
@@ -247,3 +253,26 @@ def baseline_completion(context: str,
     input_ids = tokenizer(context, return_tensors="pt", truncation=True)
     tokens = model.generate(**input_ids, pad_token_id=tokenizer.eos_token_id)
     return tokenizer.decode(tokens[0, -1])
+
+
+def baseline_completion_plus(context: str, 
+                             model,
+                             tokenizer,
+                             max_new_tokens: int = 5,
+):
+    # TODO completion sur plusieurs tokens
+    input_ids = tokenizer(context, return_tensors="pt", truncation=True).input_ids
+
+    if hasattr(model.config, "max_new_tokens"):
+        tokens = model.generate(input_ids,
+                                max_new_tokens=max_new_tokens,
+                                pad_token_id=tokenizer.eos_token_id)
+    else:
+        max_length = input_ids.shape[1] + max_new_tokens
+        tokens = model.generate(input_ids,
+                                max_length=max_length,
+                                pad_token_id=tokenizer.eos_token_id)
+    
+    generated_text = tokenizer.decode(tokens[0, -max_new_tokens:], skip_special_tokens=True)
+    
+    return generated_text
