@@ -19,11 +19,12 @@ def create_patch_request_dict(model_name: str,
         _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer, model)
     
     for pair in dict:
-        dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
-                                                               context_2=dict[pair]['context_2'],
-                                                               model=model,
-                                                               tokenizer=tokenizer,
-                                                               details=details)
+        # TODO: ajouter pour chaque layer la extended request_patch output dict[pair]['patching_result_multitok']
+        dict[pair]['patching_result'], dict[pair]['patching_result_multitok'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
+                                                                                                       context_2=dict[pair]['context_2'],
+                                                                                                       model=model,
+                                                                                                       tokenizer=tokenizer,
+                                                                                                       details=details)
         dict[pair]['baseline_completion_extended_1'] = baseline_completion_plus(context=dict[pair]['context_1'],
                                                                                 model=model,
                                                                                 tokenizer=tokenizer)
@@ -116,7 +117,6 @@ def create_all_prompt_pairs_dialogs(tokenizer,
             prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
             prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
 
-            # TODO: à corriger, c'est faux! base_completion->get first token
             prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = baseline_completion(context=context_1,
                                                                                model=model,
                                                                                tokenizer=tokenizer)
@@ -161,7 +161,7 @@ def request_patch_all_prompt_pairs(model_name: str,
 
     for context_1, context_2 in all_prompt_pairs:
 
-        token_per_layer = request_patch_one_pair(context_1=context_1,
+        token_per_layer, _ = request_patch_one_pair(context_1=context_1,
                                                  context_2=context_2,
                                                  model=model,
                                                  tokenizer=tokenizer,
@@ -194,6 +194,7 @@ def request_patch_one_pair(context_1: str,
                                                   context_1)
 
     token_per_layer = []
+    token_per_layer_multitok = []
     layers = len(get_layers_to_enumerate(model))
     for layer in range(layers):
         tokens, original_length = apply_activation_patch(model=model,
@@ -207,9 +208,11 @@ def request_patch_one_pair(context_1: str,
         #last_str_token = str_tokens[-1].split()[-1] previous line with str_tokens = tokenizer.batch_decode(tokens)
         token_per_layer.append(last_str_token)
 
+        token_per_layer_multitok.append(tokenizer.decode(tokens[0, original_length:]))
+
     if details:
         print(token_per_layer)
-    return token_per_layer
+    return token_per_layer, token_per_layer_multitok
 
 
 def get_first_token_from_str(string: str,

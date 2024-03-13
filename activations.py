@@ -79,7 +79,9 @@ def apply_activation_patch(model,
     try:
         with torch.no_grad():
             original_length = input_ids['input_ids'].shape[1]
-            tokens = model.generate(**input_ids, pad_token_id=tokenizer.eos_token_id)
+            tokens = model.generate(**input_ids, 
+                                    max_new_tokens=5,
+                                    pad_token_id=tokenizer.eos_token_id)
     finally:
         hook_handle.remove()
     
