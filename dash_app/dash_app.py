@@ -32,6 +32,7 @@ app.layout = html.Div([
     ]),
 
     html.Div(className='row', children=[
+        html.B('Output tokens after patching each layer:'),
         html.P(id='out-tokens-container')
     ]),
     dcc.Graph(figure={}, id='accuracy-graph-one-pair'),
@@ -106,9 +107,14 @@ def update_output(pair, model_name, task):
      Input('task-dropdown', 'value')]
 )
 def update_output(pair, model_name, task):
+    out_tokens = []
     with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
-    return patch_request_dict[f'pair_{pair}']['patching_result']
+    
+    patching_result = patch_request_dict[f'pair_{pair}']['patching_result']
+    for l, token in enumerate(patching_result):
+        out_tokens.append(f'{l}:{token},  ')
+    return out_tokens
 
 
 
