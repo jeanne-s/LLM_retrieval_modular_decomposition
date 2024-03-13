@@ -22,12 +22,14 @@ app.layout = html.Div([
         html.Div([
         html.B('Context 1:'),
         html.P(id='pair-context1-container'),
-        html.P(id='context1-baseline-completion')
+        html.P(id='context1-baseline-completion'),
+        html.P(id='context1-baseline-completion-extended')
         ]),
         html.Div([
         html.B('Context 2:'),
         html.P(id='pair-context2-container'),
-        html.P(id='context2-baseline-completion')
+        html.P(id='context2-baseline-completion'),
+        html.P(id='context2-baseline-completion-extended')
         ])
     ]),
 
@@ -82,6 +84,22 @@ def update_output(pair, model_name, task):
     elif task == 'dialogs':
         return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R_C1']}"
 
+@callback(
+    Output('context1-baseline-completion-extended', 'children'),
+    [Input('pair-dropdown', 'value'),
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
+)
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
+        patch_request_dict = pickle.load(f)
+
+    if task == 'short_stories':
+        return None
+    elif task == 'dialogs':
+        return f"Baseline completion extended : {patch_request_dict[f'pair_{pair}']['baseline_completion_extended_1']}"
+
+
 ### CONTEXT 2 BASELINE COMPLETION ###
 @callback(
     Output('context2-baseline-completion', 'children'),
@@ -97,6 +115,21 @@ def update_output(pair, model_name, task):
         return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R2_C2']}"
     elif task == 'dialogs':
         return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R_C2']}"
+
+@callback(
+    Output('context2-baseline-completion-extended', 'children'),
+    [Input('pair-dropdown', 'value'),
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
+)
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
+        patch_request_dict = pickle.load(f)
+
+    if task == 'short_stories':
+        return None
+    elif task == 'dialogs':
+        return f"Baseline completion extended : {patch_request_dict[f'pair_{pair}']['baseline_completion_extended_2']}"
 
 
 ### OUTPUT TOKENS PER LAYER ###
