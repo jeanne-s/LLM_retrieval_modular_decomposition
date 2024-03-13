@@ -26,4 +26,4 @@ def plot_request_patching_accuracy(model_name: str,
     if savefig:
         plt.savefig(f"figures/request_patching_normalized_accuracy_{model_name}.png")
         
-    return fig
+    return fig  
