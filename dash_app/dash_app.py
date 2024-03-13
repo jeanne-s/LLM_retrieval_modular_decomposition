@@ -35,8 +35,10 @@ app.layout = html.Div([
 
     html.Div(className='row', children=[
         html.B('Output tokens after patching each layer:'),
-        html.P(id='out-tokens-container')
+        html.P(id='out-tokens-container'),
+        html.P(id='out-multitokens-container')
     ]),
+
     dcc.Graph(figure={}, id='accuracy-graph-one-pair'),
     dcc.Graph(figure={}, id='accuracy-graph-all-pairs')
 ])
@@ -149,6 +151,22 @@ def update_output(pair, model_name, task):
         out_tokens.append(f'{l}:{token},  ')
     return out_tokens
 
+@callback(
+    Output('out-multitokens-container', 'children'),
+    [Input('pair-dropdown', 'value'),
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
+)
+def update_output(pair, model_name, task):
+    out_tokens = []
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
+        patch_request_dict = pickle.load(f)
+    
+    patching_result = patch_request_dict[f'pair_{pair}']['patching_result_multitok']
+    for l, token in enumerate(patching_result):
+        out_tokens.append(f'{l}:{token},  ')
+    return out_tokens
+
 
 
 ### ACCURACY GRAPH ONE PAIR ###
@@ -187,10 +205,12 @@ def update_graph_one_pair(pair, model_name, task):
 ### ACCURACY GRAPH ALL PAIRS ###
 @callback(
     Output(component_id='accuracy-graph-all-pairs', component_property='figure'),
-    Input('model-dropdown', 'value')
+    [Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_graph_all_pairs(model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_graph_all_pairs(model_name, task):
+
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
 
     accuracy_df = pd.DataFrame(columns=['pair', 'request_context', 'layer', 'acc'])
