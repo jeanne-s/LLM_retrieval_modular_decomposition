@@ -15,6 +15,9 @@ app.layout = html.Div([
         dcc.Dropdown(['gpt2-small', 'pythia-1b', 'pythia-2.8b'], value='gpt2-small', id='model-dropdown')
     ]),
     html.Div(className='row', children=[
+        dcc.Dropdown(['short_stories', 'dialogs'], value='short_stories', id='task-dropdown')
+    ]),
+    html.Div(className='row', children=[
         dcc.Dropdown(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], value='0', id='pair-dropdown'),
         html.Div([
         html.B('Context 1:'),
@@ -28,6 +31,9 @@ app.layout = html.Div([
         ])
     ]),
 
+    html.Div(className='row', children=[
+        html.P(id='out-tokens-container')
+    ]),
     dcc.Graph(figure={}, id='accuracy-graph-one-pair'),
     dcc.Graph(figure={}, id='accuracy-graph-all-pairs')
 ])
@@ -37,10 +43,11 @@ app.layout = html.Div([
 @callback(
     Output('pair-context1-container', 'children'),
     [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value')]
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_output(pair, model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
     return patch_request_dict[f'pair_{pair}']['context_1']
 
@@ -49,10 +56,11 @@ def update_output(pair, model_name):
 @callback(
     Output('pair-context2-container', 'children'),
     [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value')]
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_output(pair, model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
     return patch_request_dict[f'pair_{pair}']['context_2']
 
@@ -61,44 +69,74 @@ def update_output(pair, model_name):
 @callback(
     Output('context1-baseline-completion', 'children'),
     [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value')]
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_output(pair, model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
-    return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R1_C1']}"
+
+    if task == 'short_stories':
+        return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R1_C1']}"
+    elif task == 'dialogs':
+        return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R_C1']}"
 
 ### CONTEXT 2 BASELINE COMPLETION ###
 @callback(
     Output('context2-baseline-completion', 'children'),
     [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value')]
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_output(pair, model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
-    return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R2_C2']}"
+
+    if task == 'short_stories':
+        return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R2_C2']}"
+    elif task == 'dialogs':
+        return f"Baseline completion : {patch_request_dict[f'pair_{pair}']['R_C2']}"
+
+
+### OUTPUT TOKENS PER LAYER ###
+@callback(
+    Output('out-tokens-container', 'children'),
+    [Input('pair-dropdown', 'value'),
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
+)
+def update_output(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
+        patch_request_dict = pickle.load(f)
+    return patch_request_dict[f'pair_{pair}']['patching_result']
+
 
 
 ### ACCURACY GRAPH ONE PAIR ###
 @callback(
     Output(component_id='accuracy-graph-one-pair', component_property='figure'),
     [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value')]
+     Input('model-dropdown', 'value'),
+     Input('task-dropdown', 'value')]
 )
-def update_graph_one_pair(pair, model_name):
-    with open(f'patch_request_dictionaries/{model_name}.pkl', 'rb') as f:
+def update_graph_one_pair(pair, model_name, task):
+    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
         patch_request_dict = pickle.load(f)
 
     accuracy_df = pd.DataFrame(columns=['request_context', 'layer', 'acc'])
-    R2_C2 = patch_request_dict[f'pair_{pair}']['R2_C2']
-    R1_C1 = patch_request_dict[f'pair_{pair}']['R1_C1']
-    R1_C2 = patch_request_dict[f'pair_{pair}']['R1_C2']
-    for l, layer_output in enumerate(patch_request_dict[f'pair_{pair}']['patching_result']):
-        for request_context, name in zip([R2_C2, R1_C1, R1_C2], [f'R2(C2): {R2_C2}', f'R1(C1): {R1_C1}', f'R1(C2): {R1_C2}']):
-            acc = 1 if request_context == layer_output else 0
-            temp_series = pd.DataFrame([{'request_context': name, 'layer': l, 'acc': acc}])
-            accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
+
+    if task == 'short_stories':
+        R2_C2 = patch_request_dict[f'pair_{pair}']['R2_C2']
+        R1_C1 = patch_request_dict[f'pair_{pair}']['R1_C1']
+        R1_C2 = patch_request_dict[f'pair_{pair}']['R1_C2']
+        for l, layer_output in enumerate(patch_request_dict[f'pair_{pair}']['patching_result']):
+            for request_context, name in zip([R2_C2, R1_C1, R1_C2], [f'R2(C2): {R2_C2}', f'R1(C1): {R1_C1}', f'R1(C2): {R1_C2}']):
+                acc = 1 if request_context == layer_output else 0
+                temp_series = pd.DataFrame([{'request_context': name, 'layer': l, 'acc': acc}])
+                accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
+    elif task == 'dialogs':
+        # TODO write sub-function for dialogs
+        return
 
     fig = px.line(accuracy_df, x='layer', y='acc', color='request_context', 
                   title='accuracy',
