@@ -6,14 +6,24 @@ import tqdm
 from request_patching import request_patch_all_prompt_pairs
 
 def plot_request_patching_accuracy(model_name: str,
+                                   dataset: str = 'short_stories',
                                    savefig = False,
                                    details = False
 ):
     """ Plots the normalized accuracy from the request_patching experiment.
     """
+
+    assert dataset in ['short_stories', 'dialogs']
     accuracy_df = pd.DataFrame(columns=['pair', 'request_context', 'layer', 'acc'])
-    tokens_per_prompt_pair, R2_C2, R1_C2, R1_C1 = request_patch_all_prompt_pairs(model_name=model_name,
-                                                                                 details=details)
+    
+    if dataset == 'short_stories':
+        tokens_per_prompt_pair, R2_C2, R1_C2, R1_C1 = request_patch_all_prompt_pairs(model_name=model_name,
+                                                                                     dataset=dataset,
+                                                                                     details=details)
+    elif dataset == 'dialogs':
+        tokens_per_prompt_pair, R_C1, R_C2 = request_patch_all_prompt_pairs(model_name=model_name,
+                                                                            dataset=dataset,
+                                                                            details=details)
 
     for i, pair in enumerate(tokens_per_prompt_pair): 
         for l, layer_output in enumerate(pair):

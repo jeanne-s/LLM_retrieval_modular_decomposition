@@ -15,6 +15,8 @@ def create_patch_request_dict(model_name: str,
 
     if dataset == 'short_stories':
         _,_,_,_,dict = create_all_prompt_pairs_short_stories(tokenizer)
+    elif dataset == 'dialogs':
+        _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer)
     
     for pair in dict:
         dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
@@ -23,7 +25,7 @@ def create_patch_request_dict(model_name: str,
                                                                tokenizer=tokenizer,
                                                                details=details)
 
-    with open(f'dash_app/patch_request_dictionaries/{model_name}.pkl', 'wb') as f:
+    with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
     return dict
 
@@ -81,7 +83,8 @@ def create_all_prompt_pairs_short_stories(tokenizer,
     return all_prompt_pairs, R2_C2, R1_C2, R1_C1, prompt_pairs_dict
 
 
-def create_all_prompt_pairs_dialogs(dialog_filepath: str = 'data/dialogs.json'):
+def create_all_prompt_pairs_dialogs(tokenizer,
+                                    dialog_filepath: str = 'data/dialogs.json'):
 
     # TODO: faire tourner la pipeline dans les deux sens !
     dialogs = json.load(open(dialog_filepath))
@@ -90,7 +93,9 @@ def create_all_prompt_pairs_dialogs(dialog_filepath: str = 'data/dialogs.json'):
     all_prompt_pairs = []
     R_C2 = []
     R_C1 = []
+    prompt_pairs_dict = {}
 
+    pair_id = 0
     for i in range(0, len(dialogs)):
         for j in range(i+1, len(dialogs)):
             context_1 = dialogs[f'dialog_{i}']['context']
@@ -99,7 +104,17 @@ def create_all_prompt_pairs_dialogs(dialog_filepath: str = 'data/dialogs.json'):
             R_C2.append(dialogs[f'dialog_{j}']['emotion'])
             R_C1.append(dialogs[f'dialog_{i}']['emotion'])
 
-    return all_prompt_pairs, R_C1, R_C2
+            # Dict
+            prompt_pairs_dict[f'pair_{pair_id}'] = {}
+            prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
+            prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
+            prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['emotion'],
+                                                                                     tokenizer)
+            prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['emotion'],
+                                                                                     tokenizer)
+            pair_id += 1
+
+    return all_prompt_pairs, R_C1, R_C2, prompt_pairs_dict
 
 
 

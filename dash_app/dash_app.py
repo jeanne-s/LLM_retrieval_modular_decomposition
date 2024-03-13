@@ -4,7 +4,7 @@ import json
 import pickle
 import plotly.express as px
 
-# TODO: automatic set of pair-dropdown
+# TODO: automatic set of pair-dropdown instead of hardcoded 
 
 
 
