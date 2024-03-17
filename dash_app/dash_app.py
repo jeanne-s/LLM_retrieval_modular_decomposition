@@ -12,10 +12,10 @@ app = Dash(__name__)
 
 app.layout = html.Div([
     html.Div(className='row', children=[
-        dcc.Dropdown(['gpt2-small', 'pythia-1b', 'pythia-2.8b'], value='gpt2-small', id='model-dropdown')
+        dcc.Dropdown(['gpt2-small', 'pythia-1b', 'pythia-2.8b'], value='pythia-2.8b', id='model-dropdown')
     ]),
     html.Div(className='row', children=[
-        dcc.Dropdown(['short_stories', 'dialogs'], value='short_stories', id='task-dropdown')
+        dcc.Dropdown(['short_stories', 'dialogs'], value='dialogs', id='task-dropdown')
     ]),
     html.Div(className='row', children=[
         dcc.Dropdown(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], value='0', id='pair-dropdown'),
@@ -141,9 +141,15 @@ def update_graph_one_pair(pair, model_name, task):
                 acc = 1 if request_context == layer_output else 0
                 temp_series = pd.DataFrame([{'request_context': name, 'layer': l, 'acc': acc}])
                 accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
+
     elif task == 'dialogs':
-        # TODO write sub-function for dialogs
-        return
+        R_C2 = patch_request_dict[f'pair_{pair}']['R_C2']
+        R_C1 = patch_request_dict[f'pair_{pair}']['R_C1']
+        for l, layer_output in enumerate(patch_request_dict[f'pair_{pair}']['patching_result']):
+            for request_context, name in zip([R_C2, R_C1], [f'R(C2): {R_C2}', f'R(C1): {R_C1}']):
+                acc = 1 if request_context == layer_output else 0
+                temp_series = pd.DataFrame([{'request_context': name, 'layer': l, 'acc': acc}])
+                accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
 
     fig = px.line(accuracy_df, x='layer', y='acc', color='request_context', 
                   title='accuracy',
@@ -165,14 +171,25 @@ def update_graph_all_pairs(model_name, task):
 
     accuracy_df = pd.DataFrame(columns=['pair', 'request_context', 'layer', 'acc'])
     for i, pair in enumerate(patch_request_dict):
-        R2_C2 = patch_request_dict[f'pair_{i}']['R2_C2']
-        R1_C1 = patch_request_dict[f'pair_{i}']['R1_C1']
-        R1_C2 = patch_request_dict[f'pair_{i}']['R1_C2']
-        for l, layer_output in enumerate(patch_request_dict[f'pair_{i}']['patching_result']):
-            for request_context, name in zip([R2_C2, R1_C1, R1_C2], ['R2(C2)', 'R1(C1)', 'R1(C2)']):
-                acc = 1 if request_context == layer_output else 0
-                temp_series = pd.DataFrame([{'pair': i, 'request_context': name, 'layer': l, 'acc': acc}])
-                accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
+
+        if task == 'short_stories':
+            R2_C2 = patch_request_dict[f'pair_{i}']['R2_C2']
+            R1_C1 = patch_request_dict[f'pair_{i}']['R1_C1']
+            R1_C2 = patch_request_dict[f'pair_{i}']['R1_C2']
+            for l, layer_output in enumerate(patch_request_dict[f'pair_{i}']['patching_result']):
+                for request_context, name in zip([R2_C2, R1_C1, R1_C2], ['R2(C2)', 'R1(C1)', 'R1(C2)']):
+                    acc = 1 if request_context == layer_output else 0
+                    temp_series = pd.DataFrame([{'pair': i, 'request_context': name, 'layer': l, 'acc': acc}])
+                    accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
+        
+        elif task == 'dialogs':
+            R_C2 = patch_request_dict[f'{pair}']['R_C2']
+            R_C1 = patch_request_dict[f'{pair}']['R_C1']
+            for l, layer_output in enumerate(patch_request_dict[f'pair_{i}']['patching_result']):
+                for request_context, name in zip([R_C2, R_C1], ['R(C2)', 'R(C1)']):
+                    acc = 1 if request_context == layer_output else 0
+                    temp_series = pd.DataFrame([{'pair': i, 'request_context': name, 'layer': l, 'acc': acc}])
+                    accuracy_df = pd.concat([accuracy_df, temp_series], ignore_index=True)
 
     agg_df = accuracy_df.groupby(['request_context', 'layer'], as_index=False)['acc'].mean()
     fig = px.line(agg_df, x='layer', y='acc',
