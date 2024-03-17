@@ -25,12 +25,7 @@ def create_patch_request_dict(model_name: str,
                                                                                                        model=model,
                                                                                                        tokenizer=tokenizer,
                                                                                                        details=details)
-        dict[pair]['baseline_completion_extended_1'] = baseline_completion_plus(context=dict[pair]['context_1'],
-                                                                                model=model,
-                                                                                tokenizer=tokenizer)
-        dict[pair]['baseline_completion_extended_2'] = baseline_completion_plus(context=dict[pair]['context_2'],
-                                                                                model=model,
-                                                                                tokenizer=tokenizer)
+
 
     with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
@@ -105,25 +100,26 @@ def create_all_prompt_pairs_dialogs(tokenizer,
 
     pair_id = 0
     for i in range(0, len(dialogs)):
-        for j in range(i+1, len(dialogs)):
-            context_1 = dialogs[f'dialog_{i}']['context']
-            context_2 = dialogs[f'dialog_{j}']['context']
-            all_prompt_pairs.append([context_1, context_2])
-            R_C2.append(dialogs[f'dialog_{j}']['emotion'])
-            R_C1.append(dialogs[f'dialog_{i}']['emotion'])
+        for j in range(0, len(dialogs)):
+            if i !=j:
+                context_1 = dialogs[f'dialog_{i}']['context']
+                context_2 = dialogs[f'dialog_{j}']['context']
+                all_prompt_pairs.append([context_1, context_2])
+                R_C2.append(dialogs[f'dialog_{j}']['emotion'])
+                R_C1.append(dialogs[f'dialog_{i}']['emotion'])
 
-            # Dict
-            prompt_pairs_dict[f'pair_{pair_id}'] = {}
-            prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
-            prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
+                # Dict
+                prompt_pairs_dict[f'pair_{pair_id}'] = {}
+                prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1
+                prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
 
-            prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = baseline_completion(context=context_1,
-                                                                               model=model,
-                                                                               tokenizer=tokenizer)
-            prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = baseline_completion(context=context_2,
-                                                                               model=model,
-                                                                               tokenizer=tokenizer)
-            pair_id += 1
+                prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = baseline_completion(context=context_1,
+                                                                                model=model,
+                                                                                tokenizer=tokenizer)
+                prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = baseline_completion(context=context_2,
+                                                                                model=model,
+                                                                                tokenizer=tokenizer)
+                pair_id += 1
 
     return all_prompt_pairs, R_C1, R_C2, prompt_pairs_dict
 
@@ -208,7 +204,9 @@ def request_patch_one_pair(context_1: str,
         #last_str_token = str_tokens[-1].split()[-1] previous line with str_tokens = tokenizer.batch_decode(tokens)
         token_per_layer.append(last_str_token)
 
-        token_per_layer_multitok.append(tokenizer.decode(tokens[0, original_length:]))
+        # TODO: multitok_output could be better defined
+        multitok_output = tokenizer.decode(tokens[0, -5:], skip_special_tokens=True) # /!\ if you want to change -5, change it also in apply_activation_patch 
+        token_per_layer_multitok.append(multitok_output)
 
     if details:
         print(token_per_layer)
