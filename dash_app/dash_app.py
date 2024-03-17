@@ -33,8 +33,7 @@ app.layout = html.Div([
 
     html.Div(className='row', children=[
         html.B('Output tokens after patching each layer:'),
-        html.P(id='out-tokens-container'),
-        html.P(id='out-multitokens-container')
+        html.P(id='out-tokens-container')
     ]),
 
     dcc.Graph(figure={}, id='accuracy-graph-one-pair'),
@@ -118,23 +117,6 @@ def update_output(pair, model_name, task):
     for l, token in enumerate(patching_result):
         out_tokens.append(f'{l}:{token},  ')
     return out_tokens
-
-@callback(
-    Output('out-multitokens-container', 'children'),
-    [Input('pair-dropdown', 'value'),
-     Input('model-dropdown', 'value'),
-     Input('task-dropdown', 'value')]
-)
-def update_output(pair, model_name, task):
-    out_tokens = []
-    with open(f'patch_request_dictionaries/{model_name}_{task}.pkl', 'rb') as f:
-        patch_request_dict = pickle.load(f)
-    
-    patching_result = patch_request_dict[f'pair_{pair}']['patching_result_multitok']
-    for l, token in enumerate(patching_result):
-        out_tokens.append(f'{l}:{token},  ')
-    return out_tokens
-
 
 
 ### ACCURACY GRAPH ONE PAIR ###
