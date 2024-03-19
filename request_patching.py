@@ -305,7 +305,6 @@ def create_prompt_pairs_dialogs_2(tokenizer,
                     for char_id in [1,2]:
                         emotions.append([dialogs[f'dialog_{d}'][f'attribute_character_{char_id}']])
                 random.shuffle(emotions)
-                print("emotions", emotions)
 
                 request_1 = f"Alice: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
                 request_2 = f"Bob: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
