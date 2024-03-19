@@ -21,13 +21,14 @@ def create_patch_request_dict(model_name: str,
     elif dataset == 'dialogs_2':
         dict = create_prompt_pairs_dialogs_2(tokenizer)
     
+    
     for pair in dict:
         # TODO: ajouter pour chaque layer la extended request_patch output dict[pair]['patching_result_multitok']
-        dict[pair]['patching_result'], dict[pair]['patching_result_multitok'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
-                                                                                                       context_2=dict[pair]['context_2'],
-                                                                                                       model=model,
-                                                                                                       tokenizer=tokenizer,
-                                                                                                       details=details)
+        dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
+                                                               context_2=dict[pair]['context_2'],
+                                                               model=model,
+                                                               tokenizer=tokenizer,
+                                                               details=details)
 
     with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
@@ -192,7 +193,6 @@ def request_patch_one_pair(context_1: str,
                                                   context_1)
 
     token_per_layer = []
-    token_per_layer_multitok = []
     layers = len(get_layers_to_enumerate(model))
     for layer in range(layers):
         tokens, original_length = apply_activation_patch(model=model,
@@ -206,13 +206,9 @@ def request_patch_one_pair(context_1: str,
         #last_str_token = str_tokens[-1].split()[-1] previous line with str_tokens = tokenizer.batch_decode(tokens)
         token_per_layer.append(last_str_token)
 
-        # TODO: multitok_output could be better defined
-        multitok_output = tokenizer.decode(tokens[0, -5:], skip_special_tokens=True) # /!\ if you want to change -5, change it also in apply_activation_patch 
-        token_per_layer_multitok.append(multitok_output)
-
     if details:
         print(token_per_layer)
-    return token_per_layer, token_per_layer_multitok
+    return token_per_layer
 
 
 def get_first_token_from_str(string: str,
@@ -293,21 +289,19 @@ def create_prompt_pairs_dialogs_2(tokenizer,
     pair_id = 0
     for i in range(0, len(dialogs)):
         for j in range(0, len(dialogs)):
-            if i !=j:
+            if (i!=j and dialogs[f'dialog_{i}']['character_1']!=dialogs[f'dialog_{j}']['character_1']):
                 prompt_pairs_dict[f'pair_{pair_id}'] = {}
                 context_1 = dialogs[f'dialog_{i}']['context']
                 context_2 = dialogs[f'dialog_{j}']['context']
 
-                # Request generation
-                # TODO: code à corriger genre if fini par Alice, alors x mais il faut que ce soit diff pour les deux contexts
                 emotions = []
                 for d in [i, j]:    
                     for char_id in [1,2]:
-                        emotions.append([dialogs[f'dialog_{d}'][f'attribute_character_{char_id}']])
+                        emotions.append(dialogs[f'dialog_{d}'][f'attribute_character_{char_id}'])
                 random.shuffle(emotions)
 
-                request_1 = f"Alice: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
-                request_2 = f"Bob: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
+                request_1 = f"{dialogs[f'dialog_{i}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
+                request_2 = f"{dialogs[f'dialog_{j}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
                 prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1 + request_1
                 prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request_2
 
