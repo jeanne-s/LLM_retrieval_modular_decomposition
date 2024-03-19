@@ -1,5 +1,6 @@
 import json
 import pickle
+import random
 
 from models import get_model_from_name
 from activations import get_residual_stream_activations, apply_activation_patch, get_layers_to_enumerate
@@ -10,13 +11,15 @@ def create_patch_request_dict(model_name: str,
                               dataset: str = 'short_stories',
                               details=False):
 
-    assert dataset in ['short_stories', 'dialogs']
+    assert dataset in ['short_stories', 'dialogs', 'dialogs_2']
     model, tokenizer = get_model_from_name(model_name)
 
     if dataset == 'short_stories':
         _,_,_,_,dict = create_all_prompt_pairs_short_stories(tokenizer)
     elif dataset == 'dialogs':
         _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer, model)
+    elif dataset == 'dialogs_2':
+        dict = create_prompt_pairs_dialogs_2(tokenizer)
     
     for pair in dict:
         # TODO: ajouter pour chaque layer la extended request_patch output dict[pair]['patching_result_multitok']
@@ -25,7 +28,6 @@ def create_patch_request_dict(model_name: str,
                                                                                                        model=model,
                                                                                                        tokenizer=tokenizer,
                                                                                                        details=details)
-
 
     with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
@@ -277,3 +279,46 @@ def baseline_completion_plus(context: str,
     generated_text = tokenizer.decode(tokens[0, -max_new_tokens:], skip_special_tokens=True)
     
     return generated_text
+
+
+
+def create_prompt_pairs_dialogs_2(tokenizer,
+                                  dialog_filepath: str = 'data/dialogs_2.json'):
+    
+    dialogs = json.load(open(dialog_filepath))
+    print(f'Number of stories: {len(dialogs)}')
+
+    prompt_pairs_dict = {}
+
+    pair_id = 0
+    for i in range(0, len(dialogs)):
+        for j in range(0, len(dialogs)):
+            if i !=j:
+                prompt_pairs_dict[f'pair_{pair_id}'] = {}
+                context_1 = dialogs[f'dialog_{i}']['context']
+                context_2 = dialogs[f'dialog_{j}']['context']
+
+                # Request generation
+                # TODO: code à corriger genre if fini par Alice, alors x mais il faut que ce soit diff pour les deux contexts
+                emotions = []
+                for d in [i, j]:    
+                    for char_id in [1,2]:
+                        emotions.append([dialogs[f'dialog_{d}'][f'attribute_character_{char_id}']])
+                random.shuffle(emotions)
+                print("emotions", emotions)
+
+                request_1 = f"Alice: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
+                request_2 = f"Bob: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
+                prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1 + request_1
+                prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request_2
+
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['attribute_character_1'],
+                                                                                         tokenizer)
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_1'],
+                                                                                         tokenizer)
+                prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_2'],
+                                                                                         tokenizer)
+
+                pair_id += 1
+    
+    return prompt_pairs_dict

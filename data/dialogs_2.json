@@ -1,0 +1,16 @@
+{
+    "dialog_0":{
+        "context": "Alice: Hey, Bob! It's so nice to see you. How was your day?\nBob: Hi, Alice. It's good to see you too. My day was... okay, I guess. A bit on the nerve-wracking side. How about you? You look pretty cheerful today.\nAlice: Oh, I had a fantastic day! The weather was perfect for my morning jog, and then I spent some time in the park. It was so relaxing and just what I needed. But what happened with you? Why was your day nerve-wracking?\nBob: Well, I had to give a presentation at work today. Even though I prepared a lot, I couldn't shake off the fear of messing it up. Standing in front of everyone, I felt like my mind went blank for a moment. It was terrifying.\nAlice: I can imagine that was really scary, but I'm sure you did better than you think. You're always so well-prepared. Maybe it wasn't as bad as it felt in the moment?\nBob: Maybe, but it's hard to tell. I just keep replaying it in my head and wondering what everyone thought. It's difficult to shake off the fear, you know? \nAlice: I understand, but try not to be too hard on yourself.\nBob: If I had to choose between 'happy', 'sad', and 'afraid', I would say I'm '",
+        "character_1": "Alice",
+        "character_2": "Bob",
+        "attribute_character_1": "happy",
+        "attribute_character_2": "afraid"
+    },
+    "dialog_1":{
+        "context": "Alice: Hey, Bob. Saw your pictures online from the weekend. Looked like an amazing trip.\nBob: Hi, Alice! Yeah, it was incredible. The landscapes were breathtaking, and the company was even better. I feel so recharged and optimistic about what's ahead. What about you? How was your weekend?\nAlice: It was okay, just the usual. Nothing special. Must be nice to get away like that and have such a great time.\nBob: It was a nice change of pace, for sure. But, hey, there will be other trips. Maybe next time you can join in? It's always good to have a change of scenery, you know?\nAlice: Maybe. It just seems like you always have these amazing adventures, and I'm stuck in the same old routine. It gets to me sometimes, you know? Feels like I'm missing out.\nBob: I get that. It can seem like that, especially with how things get portrayed online. But trust me, it's not all sunshine and rainbows. Everyone has their struggles, even if they don't show it. The key is to find joy in the little things and hold onto hope for better days ahead.\nAlice: Easy for you to say. Your life looks perfect from the outside.",
+        "character_1": "Alice",
+        "character_2": "Bob",
+        "attribute_character_1": "jealous",
+        "attribute_character_2": "optimistic"
+    }
+}
