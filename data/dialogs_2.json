@@ -17,7 +17,7 @@
         "context": "Bob: Alice, I just heard about what happened in the team meeting. Are you okay? That must have been so tough.\nAlice: It was awful, Bob. I accidentally called our manager by the wrong name, and not just any name—I used the nickname we jokingly use in private. It slipped out in front of everyone.\nBob: Oh no, I can't believe that happened. That's...wow. How did the manager react?\nAlice: He was not amused, to say the least. The room went silent, and I could feel my face turning bright red. I wanted to crawl into a hole.\nBob: I'm really sorry, Alice. That's an honest mistake, though. Everyone gets names mixed up sometimes.\nAlice: But not like that, Bob. It was so embarrassing. I've never felt more unprofessional in my life. Now I'm worried about the repercussions.\nBob: Understandably so, but give it some time. People might be shocked now, but they'll move on to the next thing soon. And the manager knows you're a good person and worker.\nAlice: I hope you're right. I can't even think about facing everyone again.",
         "character_1": "Bob",
         "character_2": "Alice",
-        "attribute_character_1": "shocked",
+        "attribute_character_1": "shock",
         "attribute_character_2": "humiliated"
     }
 }

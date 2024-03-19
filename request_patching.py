@@ -223,7 +223,8 @@ def get_first_token_from_str(string: str,
         - if tokenization('The answer is Daniel') = 'The', 'answer', 'is', 'Daniel'
           get_first_token_from_str('Daniel') = 'Daniel'
     """
-    tokenized_ids = tokenizer.encode(f'The answer is {string}')
+    # TODO bizarre cette fonction
+    tokenized_ids = tokenizer.encode(f'{string}')
     for token_id in reversed(tokenized_ids):
         str_token = tokenizer.decode(token_id)
         if string[0] in str_token:
@@ -300,8 +301,8 @@ def create_prompt_pairs_dialogs_2(tokenizer,
                         emotions.append(dialogs[f'dialog_{d}'][f'attribute_character_{char_id}'])
                 random.shuffle(emotions)
 
-                request_1 = f"{dialogs[f'dialog_{i}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
-                request_2 = f"{dialogs[f'dialog_{j}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I'm '"
+                request_1 = f"{dialogs[f'dialog_{i}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I feel '"
+                request_2 = f"{dialogs[f'dialog_{j}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I feel '"
                 prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1 + request_1
                 prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request_2
 
