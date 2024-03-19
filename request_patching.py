@@ -212,7 +212,8 @@ def request_patch_one_pair(context_1: str,
 
 
 def get_first_token_from_str(string: str,
-                             tokenizer
+                             tokenizer,
+                             task: str = 'short_stories'
 ) -> str:
     """ Returns the first token from a given word on the prompt: 'The answer is {string}'.
     This function is useful to get the accuracy plots (plots/plot_request_patching_accuracy)
@@ -224,7 +225,12 @@ def get_first_token_from_str(string: str,
           get_first_token_from_str('Daniel') = 'Daniel'
     """
     # TODO bizarre cette fonction
-    tokenized_ids = tokenizer.encode(f'{string}')
+    assert task in ['short_stories', 'dialogs', 'dialogs_2']
+    if task in ['short_stories', 'dialogs']:
+        tokenized_ids = tokenizer.encode(f'The answer is {string}')
+    elif task == 'dialogs_2':
+        tokenized_ids = tokenizer.encode(f'{string}')
+
     for token_id in reversed(tokenized_ids):
         str_token = tokenizer.decode(token_id)
         if string[0] in str_token:
@@ -307,11 +313,14 @@ def create_prompt_pairs_dialogs_2(tokenizer,
                 prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request_2
 
                 prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['attribute_character_1'],
-                                                                                         tokenizer)
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
                 prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_1'],
-                                                                                         tokenizer)
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
                 prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_2'],
-                                                                                         tokenizer)
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
 
                 pair_id += 1
     
