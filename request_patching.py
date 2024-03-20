@@ -19,7 +19,7 @@ def create_patch_request_dict(model_name: str,
     elif dataset == 'dialogs':
         _,_,_,dict = create_all_prompt_pairs_dialogs(tokenizer, model)
     elif dataset == 'dialogs_2':
-        dict = create_prompt_pairs_dialogs_2(tokenizer)
+        dict = create_prompt_pairs_dialogs_2(model, tokenizer)
     
     
     for pair in dict:
@@ -117,11 +117,11 @@ def create_all_prompt_pairs_dialogs(tokenizer,
                 prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2
 
                 prompt_pairs_dict[f'pair_{pair_id}']['R_C1'] = baseline_completion(context=context_1,
-                                                                                model=model,
-                                                                                tokenizer=tokenizer)
+                                                                                   model=model,
+                                                                                   tokenizer=tokenizer)
                 prompt_pairs_dict[f'pair_{pair_id}']['R_C2'] = baseline_completion(context=context_2,
-                                                                                model=model,
-                                                                                tokenizer=tokenizer)
+                                                                                   model=model,
+                                                                                   tokenizer=tokenizer)
                 pair_id += 1
 
     return all_prompt_pairs, R_C1, R_C2, prompt_pairs_dict
@@ -285,8 +285,10 @@ def baseline_completion_plus(context: str,
 
 
 
-def create_prompt_pairs_dialogs_2(tokenizer,
+def create_prompt_pairs_dialogs_2(model,
+                                  tokenizer,
                                   dialog_filepath: str = 'data/dialogs_2.json'):
+    # TODO la fonction peut-être réécrite pour générer plus de pairs
     
     dialogs = json.load(open(dialog_filepath))
     print(f'Number of stories: {len(dialogs)}')
@@ -296,32 +298,36 @@ def create_prompt_pairs_dialogs_2(tokenizer,
     pair_id = 0
     for i in range(0, len(dialogs)):
         for j in range(0, len(dialogs)):
-            if (i!=j and dialogs[f'dialog_{i}']['character_1']!=dialogs[f'dialog_{j}']['character_1']):
+            if i!=j:
                 prompt_pairs_dict[f'pair_{pair_id}'] = {}
-                context_1 = dialogs[f'dialog_{i}']['context']
-                context_2 = dialogs[f'dialog_{j}']['context']
+                context_1 = dialogs[f'dialog_{i}']['context_1']
+                context_2 = dialogs[f'dialog_{j}']['context_2']
 
-                emotions = []
-                for d in [i, j]:    
-                    for char_id in [1,2]:
-                        emotions.append(dialogs[f'dialog_{d}'][f'attribute_character_{char_id}'])
+                emotions = [dialogs[f'dialog_{i}'][f'attribute_character_2']]
+                emotions.append(dialogs[f'dialog_{j}'][f'attribute_character_2'])
+                emotions.append(dialogs[f'dialog_{j}'][f'attribute_character_1'])
                 random.shuffle(emotions)
 
-                request_1 = f"{dialogs[f'dialog_{i}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I feel '"
-                request_2 = f"{dialogs[f'dialog_{j}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}' '{emotions[3]}', I would say I feel '"
-                prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1 + request_1
-                prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request_2
+                request = f" If I had to choose between '{emotions[0]}', '{emotions[1]}', and '{emotions[2]}', I would say I felt '"
+                #request_2 = f"{dialogs[f'dialog_{j}']['character_1']}: If I had to choose between '{emotions[0]}', '{emotions[1]}', '{emotions[2]}', and '{emotions[3]}', I would say I feel '"
+                prompt_pairs_dict[f'pair_{pair_id}']['context_1'] = context_1 + request
+                prompt_pairs_dict[f'pair_{pair_id}']['context_2'] = context_2 + request
 
-                prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['attribute_character_1'],
-                                                                                         tokenizer,
-                                                                                         task='dialogs_2')
-                prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_1'],
-                                                                                         tokenizer,
-                                                                                         task='dialogs_2')
-                prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_2'],
-                                                                                         tokenizer,
-                                                                                         task='dialogs_2')
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = baseline_completion(context_1 + request, model, tokenizer)
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = baseline_completion(dialogs[f'dialog_{j}']['context_1'] + request, model, tokenizer)
+                prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = baseline_completion(context_2 + request, model, tokenizer)
 
+                """
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C1'] = get_first_token_from_str(dialogs[f'dialog_{i}']['attribute_character_2'],
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
+                prompt_pairs_dict[f'pair_{pair_id}']['R1_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_2'],
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
+                prompt_pairs_dict[f'pair_{pair_id}']['R2_C2'] = get_first_token_from_str(dialogs[f'dialog_{j}']['attribute_character_1'],
+                                                                                         tokenizer,
+                                                                                         task='dialogs_2')
+                """
                 pair_id += 1
     
     return prompt_pairs_dict
