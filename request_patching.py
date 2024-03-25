@@ -161,10 +161,10 @@ def request_patch_all_prompt_pairs(model_name: str,
     for context_1, context_2 in all_prompt_pairs:
 
         token_per_layer, _ = request_patch_one_pair(context_1=context_1,
-                                                 context_2=context_2,
-                                                 model=model,
-                                                 tokenizer=tokenizer,
-                                                 details=details)
+                                                    context_2=context_2,
+                                                    model=model,
+                                                    tokenizer=tokenizer,
+                                                    details=details)
         
         tokens_per_prompt_pair.append(token_per_layer)
     
@@ -179,6 +179,7 @@ def request_patch_one_pair(context_1: str,
                            context_2: str,
                            model,
                            tokenizer,
+                           layers=None,
                            details=False
 ):
     """ Applies request patching layer-wise from context_1 to context_2.
@@ -193,8 +194,11 @@ def request_patch_one_pair(context_1: str,
                                                   context_1)
 
     token_per_layer = []
-    layers = len(get_layers_to_enumerate(model))
-    for layer in range(layers):
+    if layers == None:
+        layers = len(get_layers_to_enumerate(model))
+        layers = [i for i in range(0, layers)]
+
+    for layer in layers:
         tokens, original_length = apply_activation_patch(model=model,
                                                          tokenizer=tokenizer,
                                                          target_prompt=context_2,
