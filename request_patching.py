@@ -23,12 +23,12 @@ def create_patch_request_dict(model_name: str,
     
     
     for pair in dict:
-        # TODO: ajouter pour chaque layer la extended request_patch output dict[pair]['patching_result_multitok']
         dict[pair]['patching_result'] = request_patch_one_pair(context_1=dict[pair]['context_1'],
                                                                context_2=dict[pair]['context_2'],
                                                                model=model,
                                                                tokenizer=tokenizer,
-                                                               details=details)
+                                                               details=details)[0]
+        
 
     with open(f'dash_app/patch_request_dictionaries/{model_name}_{dataset}.pkl', 'wb') as f:
         pickle.dump(dict, f)
@@ -160,7 +160,7 @@ def request_patch_all_prompt_pairs(model_name: str,
 
     for context_1, context_2 in all_prompt_pairs:
 
-        token_per_layer, _ = request_patch_one_pair(context_1=context_1,
+        token_per_layer, logits_per_layer = request_patch_one_pair(context_1=context_1,
                                                     context_2=context_2,
                                                     model=model,
                                                     tokenizer=tokenizer,
@@ -180,6 +180,7 @@ def request_patch_one_pair(context_1: str,
                            model,
                            tokenizer,
                            layers=None,
+                           top_k_logits=1,
                            details=False
 ):
     """ Applies request patching layer-wise from context_1 to context_2.
@@ -194,25 +195,26 @@ def request_patch_one_pair(context_1: str,
                                                   context_1)
 
     token_per_layer = []
+    logits_per_layer = []
     if layers == None:
         layers = len(get_layers_to_enumerate(model))
         layers = [i for i in range(0, layers)]
 
     for layer in layers:
-        tokens, original_length = apply_activation_patch(model=model,
-                                                         tokenizer=tokenizer,
-                                                         target_prompt=context_2,
-                                                         target_layer_idx=layer,
-                                                         source_activations=activations)
+        tokens, original_length, logits = apply_activation_patch(model=model,
+                                                                 tokenizer=tokenizer,
+                                                                 target_prompt=context_2,
+                                                                 target_layer_idx=layer,
+                                                                 source_activations=activations)
 
-        last_token = tokens[0, original_length] # batch 0, last token
+        last_token = tokens[0, original_length-1] # batch 0, last token
         last_str_token = tokenizer.decode(last_token)
-        #last_str_token = str_tokens[-1].split()[-1] previous line with str_tokens = tokenizer.batch_decode(tokens)
         token_per_layer.append(last_str_token)
+        logits_per_layer.append(logits)
 
     if details:
         print(token_per_layer)
-    return token_per_layer
+    return token_per_layer, logits_per_layer
 
 
 def get_first_token_from_str(string: str,

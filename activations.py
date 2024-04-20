@@ -1,7 +1,8 @@
 import torch
+import torch.nn as nn
 from jaxtyping import Int, Float
 import sys
-from transformers import BertTokenizer, BertModel
+#from transformers import BertTokenizer, BertModel
 
 sys.path.append('../')
 from models import get_model_from_name
@@ -58,7 +59,7 @@ def apply_activation_patch(model,
                            target_prompt,
                            source_activations, #: Float[torch.Tensor, 'batch seq n_layers d_model'], 
                            target_layer_idx: int, 
-                           target_token_idx: int = -1, 
+                           target_token_idx: int = -1
 ):
 
     def patch_activations(source_activations, 
@@ -79,39 +80,28 @@ def apply_activation_patch(model,
     try:
         with torch.no_grad():
             original_length = input_ids['input_ids'].shape[1]
+            outputs = model(**input_ids)
+            logits = outputs.logits
+            probabilities = torch.nn.functional.softmax(logits, dim=-1)
+            tokens = torch.argmax(probabilities, dim=-1)
+            
+            """
             tokens = model.generate(**input_ids, 
                                     max_new_tokens=5,
                                     pad_token_id=tokenizer.eos_token_id)
+            
+                                    
+            outputs = model(**input_ids)
+            logits = outputs.logits
+            predictions = nn.functional.softmax(outputs.logits, dim=-1)
+            
+            # Logits
+            outputs = model(input_ids['input_ids'])
+            logits = outputs.logits 
+            new_tokens_logits = logits[:, original_length-1:-1, :]
+            """
+
     finally:
         hook_handle.remove()
     
-    return tokens, original_length
-
-
-
-"""
-def request_patching(model_name: str,
-                     source_prompt: str,
-                     target_prompt: str,
-                     target_layer_idx: int):
-
-    model, tokenizer = get_model_from_name(model_name)
-    layers = len(get_layers_to_enumerate(model))
-
-    activations = get_residual_stream_activations(model,
-                                                tokenizer,
-                                                source_prompt)
-
-
-    for layer in range(layers):
-        tokens, original_length = apply_activation_patch(model=model,
-                                                         tokenizer=tokenizer,
-                                                         target_prompt=target_prompt,
-                                                         target_layer_idx=target_layer_idx,
-                                                         source_activations=activations)
-
-        str_tokens = tokenizer.batch_decode(tokens)
-        last_str_token = str_tokens[-1].split()[original_length] #corriger pour batch
-        print(f'Layer {layer} - {last_str_token}')
-    return
-"""
+    return tokens, original_length, logits 
