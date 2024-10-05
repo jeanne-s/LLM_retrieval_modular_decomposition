@@ -110,7 +110,7 @@ tornado==6.4.1
 tqdm==4.66.3
 traitlets==5.14.1
 transformer-lens==1.14.0
-transformers==4.37.2
+transformers==4.38.0
 triton==2.2.0
 typeguard==2.13.3
 typing_extensions==4.9.0
