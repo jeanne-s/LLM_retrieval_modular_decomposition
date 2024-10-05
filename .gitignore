@@ -1,6 +1,0 @@
-config.py
-dash_app/__pycache__/
-__pycache__/
-logs/
-slurm/
-outputs/
